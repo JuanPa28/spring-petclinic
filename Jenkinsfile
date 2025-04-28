@@ -32,10 +32,11 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                // Usar las credenciales almacenadas en Jenkins para hacer login en DockerHub
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                // Usar los secretos de GitHub como variables de entorno para login en DockerHub
+                withCredentials([string(credentialsId: 'DOCKER_USERNAME', variable: 'DOCKER_USERNAME'), 
+                                 string(credentialsId: 'DOCKER_PASSWORD', variable: 'DOCKER_PASSWORD')]) {
                     sh '''
-                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         docker push $DOCKER_IMAGE
                     '''
                 }
