@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Crea tus credenciales de DockerHub en Jenkins
+        DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS ') // Crea tus credenciales de DockerHub en Jenkins
         GITHUB_CREDENTIALS = credentials('GitHub-PAT') // Credenciales de GitHub Personal Access Token
         IMAGE_NAME = "juanparamirez/imagen-jenkins:latest" // Añadir un tag (latest)
     }
