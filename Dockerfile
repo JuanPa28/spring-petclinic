@@ -1,8 +1,4 @@
-# Usa la imagen de OpenJDK 17
-FROM openjdk:17-jdk-slim
-
-# Copia el archivo JAR compilado desde el directorio target al contenedor
-COPY target/spring-petclinic*.jar app.jar
-
-# Establece el comando para ejecutar el JAR al iniciar el contenedor
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+FROM anapsix/alpine-java
+LABEL maintainer="tu_correo@ejemplo.com"
+COPY target/spring-petclinic-1.5.1.jar /home/spring-petclinic-1.5.1.jar
+CMD ["java", "-jar", "/home/spring-petclinic-1.5.1.jar"]
