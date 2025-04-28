@@ -8,8 +8,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Asegúrate de clonar el repositorio antes de continuar
-                git 'https://github.com/JuanPa28/spring-petclinic.git'
+                // Asegúrate de especificar la rama correcta
+                git branch: 'main', url: 'https://github.com/JuanPa28/spring-petclinic.git'
             }
         }
 
