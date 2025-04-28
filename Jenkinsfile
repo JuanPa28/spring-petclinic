@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout desde GitHub usando las credenciales de GitHub-PAT
-                git credentialsId: 'GitHub-PAT', url: 'https://github.com/JuanPa28/spring-petclinic.git'
+                git credentialsId: 'GitHub-PAT', git branch: 'main, url: 'https://github.com/JuanPa28/spring-petclinic.git'
             }
         }
         stage('Build Docker Image') {
