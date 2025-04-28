@@ -1,20 +1,29 @@
 pipeline {
-    agent none
+    agent any
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Crea tus credenciales en Jenkins
+        IMAGE_NAME = "juanparamirez/imagen-jenkins"
+    }
     stages {
-        stage('Maven Install') {
-            agent {
-                docker {
-                    image 'maven:3.5.0'
-                }
-            }
+        stage('Checkout') {
             steps {
-                sh 'mvn clean install'
+                git 'https://github.com/JuanPa28/spring-petclinic.git'
             }
         }
-        stage('Docker Build') {
-            agent any
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t tu_usuario_dockerhub/spring-petclinic:latest .'
+                script {
+                    docker.build(IMAGE_NAME)
+                }
+            }
+        }
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        docker.image(IMAGE_NAME).push()
+                    }
+                }
             }
         }
     }
