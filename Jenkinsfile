@@ -1,13 +1,15 @@
 pipeline {
     agent any
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Crea tus credenciales en Jenkins con ID 'dockerhub-credentials'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Crea tus credenciales de DockerHub en Jenkins
+        GITHUB_CREDENTIALS = credentials('GitHub-PAT') // Credenciales de GitHub Personal Access Token
         IMAGE_NAME = "juanparamirez/imagen-jenkins:latest" // Añadir un tag (latest)
     }
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/JuanPa28/spring-petclinic.git' // Asegúrate de que este es tu repositorio
+                // Checkout desde GitHub usando las credenciales de GitHub-PAT
+                git credentialsId: 'GitHub-PAT', url: 'https://github.com/JuanPa28/spring-petclinic.git'
             }
         }
         stage('Build Docker Image') {
