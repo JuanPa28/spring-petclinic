@@ -1,51 +1,55 @@
 pipeline {
-    agent any
+  agent none
 
-    environment {
-        // Credenciales para DockerHub y GitHub
-        DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS') // Crea tus credenciales de DockerHub en Jenkins
-        GITHUB_CREDENTIALS = credentials('GitHub-PAT') // Credenciales de GitHub Personal Access Token
-        IMAGE_NAME = "juanparamirez/imagen-jenkins:latest" // Nombre de la imagen con el tag 'latest'
+  environment {
+    DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS')
+    GITHUB_CREDENTIALS = credentials('GitHub-PAT')
+    IMAGE_NAME = "juanparamirez/imagen-jenkins:latest"
+  }
+
+  stages {
+    stage('Checkout') {
+      agent any
+      steps {
+        git credentialsId: 'GitHub-PAT', branch: 'main', url: 'https://github.com/JuanPa28/spring-petclinic.git'
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                // Realiza un checkout del repositorio GitHub usando las credenciales
-                git credentialsId: 'GitHub-PAT', branch: 'main', url: 'https://github.com/JuanPa28/spring-petclinic.git'
-            }
+    stage('Maven Install') {
+      agent {
+        docker {
+          image 'maven:3.8.8'
         }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Construir la imagen de Docker usando el Dockerfile en el repositorio
-                    docker.build(IMAGE_NAME)
-                }
-            }
-        }
-
-        stage('Push to DockerHub') {
-            steps {
-                script {
-                    // Iniciar sesión en DockerHub y subir la imagen
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        // Subir la imagen con el tag 'latest' a DockerHub
-                        docker.image(IMAGE_NAME).push()
-                    }
-                }
-            }
-        }
+      }
+      steps {
+        sh 'mvn clean install'
+      }
     }
 
-    post {
-        success {
-            // Mensaje si el pipeline se ejecuta correctamente
-            echo 'La imagen fue construida y subida exitosamente a DockerHub.'
-        }
-        failure {
-            // Mensaje si el pipeline falla
-            echo 'Hubo un error en la construcción o subida de la imagen.'
-        }
+    stage('Docker Build') {
+      agent any
+      steps {
+        sh "docker build -t ${IMAGE_NAME} ."
+      }
     }
+
+    stage('Docker Push') {
+      agent any
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_CREDENTIALS', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+          sh "docker push ${IMAGE_NAME}"
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'La imagen fue construida y subida exitosamente a DockerHub.'
+    }
+    failure {
+      echo 'Hubo un error en la construcción o subida de la imagen.'
+    }
+  }
 }
