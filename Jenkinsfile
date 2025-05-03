@@ -1,20 +1,8 @@
+#!groovy
+
 pipeline {
   agent none
-
-  environment {
-    DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS')
-    GITHUB_CREDENTIALS = credentials('GitHub-PAT')
-    IMAGE_NAME = "juanparamirez/imagen-jenkins:latest"
-  }
-
   stages {
-    stage('Checkout') {
-      agent any
-      steps {
-        git credentialsId: 'GitHub-PAT', branch: 'main', url: 'https://github.com/JuanPa28/spring-petclinic.git'
-      }
-    }
-
     stage('Maven Install') {
       agent {
         docker {
@@ -25,31 +13,20 @@ pipeline {
         sh 'mvn clean install'
       }
     }
-
     stage('Docker Build') {
       agent any
       steps {
-        sh "docker build -t ${IMAGE_NAME} ."
+        sh 'docker build -t juanparamirez/spring-petclinic:latest .'
       }
     }
-
     stage('Docker Push') {
       agent any
       steps {
-        withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_CREDENTIALS', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
-          sh "docker push ${IMAGE_NAME}"
+        withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+          sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+          sh 'docker push juanparamirez/spring-petclinic:latest'
         }
       }
-    }
-  }
-
-  post {
-    success {
-      echo 'La imagen fue construida y subida exitosamente a DockerHub.'
-    }
-    failure {
-      echo 'Hubo un error en la construcción o subida de la imagen.'
     }
   }
 }
